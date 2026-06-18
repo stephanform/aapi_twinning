@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Investor Acquisition Event — Feedback</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #1a1a1a;
+    background: #f5f4f0;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+
+  .container {
+    max-width: 680px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 12px;
+    padding: 2rem 2.5rem;
+    border: 0.5px solid #e0ddd6;
+  }
+
+  .header { margin-bottom: 2rem; }
+  .header h1 { font-size: 20px; font-weight: 500; margin-bottom: 4px; }
+  .header p { font-size: 13px; color: #666; }
+
+  .progress-bar { height: 4px; background: #e8e6e0; border-radius: 2px; margin-bottom: 1.5rem; }
+  .progress-fill { height: 4px; background: #1a1a1a; border-radius: 2px; transition: width 0.3s; }
+
+  .progress-meta {
+    display: flex; justify-content: space-between;
+    font-size: 12px; color: #888; margin-bottom: 8px;
+  }
+
+  .section-title {
+    font-size: 11px; font-weight: 500; letter-spacing: .06em;
+    color: #999; text-transform: uppercase; margin-bottom: 1.25rem;
+  }
+
+  .q-card {
+    border: 0.5px solid #e0ddd6;
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .q-num { font-size: 11px; color: #aaa; margin-bottom: 3px; }
+  .q-text { font-size: 15px; font-weight: 500; color: #1a1a1a; margin-bottom: 6px; }
+
+  .badge {
+    display: inline-block; font-size: 11px;
+    padding: 2px 10px; border-radius: 6px; margin-bottom: 12px;
+  }
+  .badge-nominal  { background: #e6f1fb; color: #185fa5; }
+  .badge-ordinal  { background: #faeeda; color: #854f0b; }
+  .badge-ratio    { background: #eaf3de; color: #3b6d11; }
+
+  select, input[type="number"] {
+    width: 100%; padding: 8px 10px; font-size: 14px;
+    border: 0.5px solid #ccc; border-radius: 8px;
+    background: #fff; color: #1a1a1a;
+    appearance: none; -webkit-appearance: none;
+    outline: none; transition: border-color .2s;
+  }
+  select:focus, input[type="number"]:focus { border-color: #888; }
+
+  .number-wrap { display: flex; align-items: center; gap: 8px; }
+  .number-wrap input { width: 130px; }
+  .unit { font-size: 13px; color: #888; }
+
+  .likert-scale-hint { font-size: 12px; color: #888; margin-bottom: 12px; }
+
+  .likert { display: flex; gap: 6px; }
+  .likert label {
+    flex: 1; text-align: center; cursor: pointer;
+    border: 0.5px solid #ddd; border-radius: 8px;
+    padding: 10px 4px; font-size: 12px; color: #555;
+    transition: background .15s, border-color .15s;
+    user-select: none;
+  }
+  .likert label:hover { background: #f5f4f0; border-color: #bbb; }
+  .likert input[type="radio"] { display: none; }
+  .likert input[type="radio"]:checked + span {
+    /* handled via JS class toggle */
+  }
+  .likert label.selected { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+  .likert label .val { font-size: 16px; font-weight: 500; display: block; margin-bottom: 2px; }
+  .likert label .lbl { font-size: 10px; line-height: 1.3; display: block; }
+
+  .nav {
+    display: flex; align-items: center;
+    justify-content: space-between; margin-top: 1.75rem;
+  }
+  .nav span { font-size: 12px; color: #aaa; }
+
+  button {
+    padding: 9px 22px; font-size: 14px; cursor: pointer;
+    border: 0.5px solid #ccc; border-radius: 8px;
+    background: #fff; color: #1a1a1a; transition: background .15s;
+  }
+  button:hover { background: #f5f4f0; }
+  button.primary {
+    background: #1a1a1a; color: #fff; border-color: #1a1a1a;
+  }
+  button.primary:hover { background: #333; }
+  button:disabled { opacity: .4; cursor: default; }
+
+  /* Summary */
+  .summary { display: none; }
+  .summary h2 { font-size: 18px; font-weight: 500; margin-bottom: 6px; }
+  .summary p { font-size: 13px; color: #666; margin-bottom: 1.5rem; }
+  .sum-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 10px; margin-bottom: 1.5rem;
+  }
+  .sum-card {
+    background: #f5f4f0; border-radius: 8px;
+    padding: 1rem; text-align: center;
+  }
+  .sum-card .val { font-size: 24px; font-weight: 500; }
+  .sum-card .lbl { font-size: 12px; color: #888; margin-top: 4px; }
+  .note {
+    background: #f5f4f0; border-radius: 8px;
+    padding: 1rem; font-size: 13px; color: #666;
+    margin-bottom: 1.5rem;
+  }
+  .dl-btn {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 22px; font-size: 14px;
+  }
+
+  /* CSV log */
+  .csv-section { margin-top: 2rem; border-top: 0.5px solid #e0ddd6; padding-top: 1.5rem; }
+  .csv-section h3 { font-size: 13px; font-weight: 500; color: #555; margin-bottom: 8px; }
+  .csv-box {
+    font-family: "Menlo", "Courier New", monospace; font-size: 11px;
+    background: #f9f8f5; border: 0.5px solid #e0ddd6; border-radius: 8px;
+    padding: 10px 12px; white-space: pre; overflow-x: auto;
+    max-height: 180px; overflow-y: auto; color: #444;
+  }
+  .clear-btn { margin-top: 8px; font-size: 12px; padding: 6px 14px; color: #c0392b; border-color: #e8a0a0; }
+  .clear-btn:hover { background: #fdf0f0; }
+
+  .badge-text { background: #f0eaf8; color: #6b3fa0; }
+
+  textarea {
+    width: 100%; padding: 10px 12px; font-size: 14px;
+    font-family: inherit; line-height: 1.6;
+    border: 0.5px solid #ccc; border-radius: 8px;
+    background: #fff; color: #1a1a1a;
+    resize: vertical; min-height: 100px;
+    outline: none; transition: border-color .2s;
+  }
+  textarea:focus { border-color: #888; }
+  .char-count { font-size: 11px; color: #bbb; text-align: right; margin-top: 4px; }
+  .sentiment-hint {
+    font-size: 12px; color: #888; font-style: italic;
+    margin-bottom: 10px; padding: 6px 10px;
+    background: #f9f8f5; border-radius: 6px;
+    border-left: 2px solid #c8b4e8;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>Investor Acquisition Event &mdash; Feedback</h1>
+    <p>Your responses are anonymous and will be used solely to improve future events.</p>
+  </div>
+
+  <!-- Questionnaire -->
+  <div id="questionnaire">
+    <div class="progress-meta">
+      <span id="section-label">Section 1 of 4</span>
+      <span id="q-count"></span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:33%"></div></div>
+    <p class="section-title" id="sec-title"></p>
+    <div id="questions"></div>
+    <div class="nav">
+      <button id="btn-prev" onclick="navigate(-1)">&#8592; Back</button>
+      <span id="nav-hint"></span>
+      <button id="btn-next" class="primary" onclick="navigate(1)">Continue &#8594;</button>
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <div class="summary" id="summary">
+    <h2>Thank you for your feedback!</h2>
+    <p>Your responses have been saved to the CSV log below. Use the download button to export the data.</p>
+    <div class="sum-grid">
+      <div class="sum-card"><div class="val" id="s-answered">0</div><div class="lbl">Questions answered</div></div>
+      <div class="sum-card"><div class="val" id="s-satisfaction">—</div><div class="lbl">Avg. satisfaction (1–5)</div></div>
+      <div class="sum-card"><div class="val" id="s-followups">—</div><div class="lbl">Follow-up meetings planned</div></div>
+      <div class="sum-card"><div class="val" id="s-wordcount">—</div><div class="lbl">Words in open answers</div></div>
+    </div>
+    <div class="note">Responses are stored in this page&#39;s session. Download the CSV to keep a permanent record. Each submission appends a new row.</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="primary dl-btn" onclick="downloadCSV()">&#8595; Download CSV</button>
+      <button onclick="resetForm()">Submit another response</button>
+    </div>
+
+    <div class="csv-section">
+      <h3>Recorded responses (preview)</h3>
+      <div class="csv-box" id="csv-preview">No responses yet.</div>
+      <button class="clear-btn" onclick="clearData()">Clear all data</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = "investor_feedback_rows";
+
+const sections = [
+  {
+    title: "Respondent profile",
+    questions: [
+      { n:1,  label:"Age group",     scale:"Ordinal",  type:"select",
+        options:["— select —","Under 30","30–39","40–49","50–59","60 or older"] },
+      { n:2,  label:"Gender",        scale:"Nominal",  type:"select",
+        options:["— select —","Female","Male","Non-binary / gender diverse","Prefer not to say","Other"] },
+      { n:3,  label:"Country",       scale:"Nominal",  type:"select",
+        options:["— select —","Germany","United Kingdom","United States","France","Netherlands","Switzerland","Other EU","Other non-EU"] },
+      { n:4,  label:"Organisation size (employees)", scale:"Ordinal", type:"select",
+        options:["— select —","1–9 (micro)","10–49 (small)","50–249 (medium)","250–999 (large)","1,000+ (enterprise)"] },
+      { n:5,  label:"Industry",      scale:"Nominal",  type:"select",
+        options:["— select —","Technology / Software","Financial Services","Healthcare / Life Sciences","Energy / Cleantech","Manufacturing / Industry","Real Estate","Consumer Goods","Other"] }
+    ]
+  },
+  {
+    title: "Investment profile & experience",
+    questions: [
+      { n:6,  label:"Years of active investment experience",           scale:"Ratio", type:"number", unit:"years" },
+      { n:7,  label:"Investor acquisition events attended (past 2 yrs)", scale:"Ratio", type:"number", unit:"events" },
+      { n:8,  label:"Typical single deal size considered",             scale:"Ratio", type:"number", unit:"€k" },
+      { n:9,  label:"Follow-up meetings planned from today's event",   scale:"Ratio", type:"number", unit:"meetings" }
+    ]
+  },
+  {
+    title: "Event satisfaction & intent",
+    questions: [
+      { n:10, label:"Overall satisfaction with this event",            scale:"Ordinal", type:"likert",
+        anchors:["Very dissatisfied","Dissatisfied","Neutral","Satisfied","Very satisfied"] },
+      { n:11, label:"Relevance of deal flow to investment strategy",   scale:"Ordinal", type:"likert",
+        anchors:["Not relevant","Slightly","Moderately","Very","Extremely"] },
+      { n:12, label:"Quality of networking opportunities",             scale:"Ordinal", type:"likert",
+        anchors:["Very poor","Poor","Fair","Good","Excellent"] },
+      { n:13, label:"Likelihood to recommend this event to a peer",    scale:"Ordinal", type:"likert",
+        anchors:["Very unlikely","Unlikely","Neutral","Likely","Very likely"] },
+      { n:14, label:"Preferred format for future events",              scale:"Nominal", type:"select",
+        options:["— select —","In-person only","Hybrid (in-person + virtual)","Fully virtual","No preference"] },
+      { n:15, label:"Additional investors from your network you might invite", scale:"Ratio", type:"number", unit:"contacts" }
+    ]
+  },
+  {
+    title: "Open feedback (sentiment analysis)",
+    questions: [
+      { n:16, label:"How would you describe the atmosphere of this event?",
+        scale:"Text", type:"textarea",
+        hint:"Describe the overall mood, energy, and social dynamics you experienced.",
+        placeholder:"e.g. The atmosphere was energetic and professional. I felt the organisers had carefully curated the guest list, which made conversations feel more meaningful than at typical networking events…" },
+      { n:17, label:"How do you assess the probability of successful acquisitions resulting from this event?",
+        scale:"Text", type:"textarea",
+        hint:"Share your perspective on deal likelihood — factors that helped or hindered.",
+        placeholder:"e.g. I see a moderate chance of at least one deal progressing. Two of the companies presented matched our investment thesis closely, though the valuation expectations on one seemed high…" },
+      { n:18, label:"What would motivate you to participate in a future edition of this event?",
+        scale:"Text", type:"textarea",
+        hint:"Mention specific improvements, topics, formats, or other factors that would bring you back.",
+        placeholder:"e.g. I would return if the event focused more on early-stage cleantech opportunities and included a structured one-on-one matching session ahead of the main programme…" }
+    ]
+  }
+];
+
+const CSV_HEADER = sections.flatMap(s => s.questions.map(q => `"Q${q.n}: ${q.label} (${q.scale})"`)).join(",");
+
+let current = 0;
+const answers = {};
+
+function badgeClass(s){ return s==="Nominal"?"badge-nominal":s==="Ordinal"?"badge-ordinal":s==="Text"?"badge-text":"badge-ratio"; }
+
+function render(){
+  const sec = sections[current];
+  document.getElementById("sec-title").textContent = sec.title;
+  document.getElementById("section-label").textContent = `Section ${current+1} of ${sections.length}`;
+  document.getElementById("q-count").textContent = `${sec.questions.length} questions`;
+  document.getElementById("progress-fill").style.width = `${Math.round((current+1)/sections.length*100)}%`;
+
+  let html = "";
+  for(const q of sec.questions){
+    html += `<div class="q-card">
+      <p class="q-num">Question ${q.n} of 18</p>
+      <p class="q-text">${q.label}</p>
+      <span class="badge ${badgeClass(q.scale)}">${q.scale==="Text"?"Free text (sentiment)":q.scale+" scale"}</span>`;
+
+    if(q.type === "select"){
+      html += `<select id="q${q.n}" onchange="answers[${q.n}]=this.value">`;
+      for(const o of q.options) html += `<option${answers[q.n]===o?" selected":""}>${o}</option>`;
+      html += `</select>`;
+    } else if(q.type === "number"){
+      html += `<div class="number-wrap">
+        <input type="number" id="q${q.n}" min="0" placeholder="e.g. 0"
+          value="${answers[q.n]||""}" oninput="answers[${q.n}]=this.value">
+        <span class="unit">${q.unit}</span>
+      </div>`;
+    } else if(q.type === "likert"){
+      html += `<p class="likert-scale-hint">1 = ${q.anchors[0]} &nbsp;·&nbsp; 5 = ${q.anchors[4]}</p>
+        <div class="likert" id="likert${q.n}">`;
+      for(let v=1;v<=5;v++){
+        html += `<label class="${answers[q.n]==v?"selected":""}" id="lbl${q.n}_${v}" onclick="pickLikert(${q.n},${v})">
+          <span class="val">${v}</span>
+          <span class="lbl">${q.anchors[v-1]}</span>
+        </label>`;
+      }
+      html += `</div>`;
+    } else if(q.type === "textarea"){
+      const val = answers[q.n] || "";
+      html += `<p class="sentiment-hint">${q.hint}</p>
+        <textarea id="q${q.n}" maxlength="1000" placeholder="${q.placeholder}"
+          oninput="answers[${q.n}]=this.value;document.getElementById('cc${q.n}').textContent=this.value.length+'/1000'"
+        >${val}</textarea>
+        <p class="char-count" id="cc${q.n}">${val.length}/1000</p>`;
+    }
+    html += `</div>`;
+  }
+  document.getElementById("questions").innerHTML = html;
+
+  const isFirst = current===0;
+  const isLast  = current===sections.length-1;
+  document.getElementById("btn-prev").disabled = isFirst;
+  document.getElementById("btn-next").textContent = isLast ? "Submit ✓" : "Continue →";
+  document.getElementById("nav-hint").textContent = isLast ? "Last section" : "";
+}
+
+function pickLikert(qn, val){
+  answers[qn] = val;
+  for(let v=1;v<=5;v++){
+    const el = document.getElementById(`lbl${qn}_${v}`);
+    if(el) el.className = v===val ? "selected" : "";
+  }
+}
+
+function navigate(dir){
+  if(dir===1 && current===sections.length-1){ submitForm(); return; }
+  current = Math.max(0, Math.min(sections.length-1, current+dir));
+  render();
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+function submitForm(){
+  // Build row
+  const allQs = sections.flatMap(s=>s.questions);
+  const row = allQs.map(q => {
+    const v = answers[q.n];
+    if(v===undefined||v===""||v==="— select —") return '""';
+    return `"${String(v).replace(/"/g,'""')}"`;
+  }).join(",");
+
+  // Append to storage
+  const existing = localStorage.getItem(STORAGE_KEY) || "";
+  const newData = existing
+    ? existing + "\n" + row
+    : CSV_HEADER + "\n" + row;
+  localStorage.setItem(STORAGE_KEY, newData);
+
+  // Compute summary stats
+  const answered = allQs.filter(q=>{
+    const v=answers[q.n]; return v!==undefined&&v!==""&&v!=="— select —";
+  }).length;
+
+  const ordQs=[10,11,12,13];
+  const ordVals = ordQs.map(n=>parseFloat(answers[n])).filter(v=>!isNaN(v));
+  const avgSat = ordVals.length ? (ordVals.reduce((a,b)=>a+b,0)/ordVals.length).toFixed(1) : "—";
+  const followups = answers[9]!==undefined&&answers[9]!=="" ? answers[9] : "—";
+
+  // Word count across free-text answers
+  const textQs=[16,17,18];
+  const totalWords = textQs.reduce((sum,n)=>{
+    const t=answers[n]||"";
+    return sum + (t.trim()===""?0:t.trim().split(/\s+/).length);
+  },0);
+
+  document.getElementById("s-answered").textContent = `${answered}/18`;
+  document.getElementById("s-satisfaction").textContent = avgSat;
+  document.getElementById("s-followups").textContent = followups;
+  document.getElementById("s-wordcount").textContent = totalWords||"—";
+
+  refreshPreview();
+
+  document.getElementById("questionnaire").style.display = "none";
+  document.getElementById("summary").style.display = "block";
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function refreshPreview(){
+  const data = localStorage.getItem(STORAGE_KEY);
+  document.getElementById("csv-preview").textContent = data || "No responses yet.";
+}
+
+function downloadCSV(){
+  const data = localStorage.getItem(STORAGE_KEY);
+  if(!data){ alert("No data to download yet."); return; }
+  const blob = new Blob([data], {type:"text/csv;charset=utf-8;"});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement("a");
+  const ts   = new Date().toISOString().slice(0,19).replace(/[:T]/g,"-");
+  a.href     = url;
+  a.download = `investor_feedback_${ts}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function resetForm(){
+  Object.keys(answers).forEach(k=>delete answers[k]);
+  current = 0;
+  document.getElementById("summary").style.display = "none";
+  document.getElementById("questionnaire").style.display = "block";
+  render();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function clearData(){
+  if(confirm("This will permanently delete all recorded responses from this browser. Continue?")){
+    localStorage.removeItem(STORAGE_KEY);
+    refreshPreview();
+  }
+}
+
+// Init
+render();
+</script>
+</body>
+</html>
